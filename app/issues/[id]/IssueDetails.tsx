@@ -23,8 +23,8 @@ const IssueDetails = ({ issue }: Props) => {
         <Text>{createdAt.toDateString()}</Text>
       </Flex>
 
-      <Card className="mt-4">
-        <div className="prose prose-zinc dark:prose-invert">
+      <Card className="prose max-w-full mt-4">
+        <div className="prose max-w-full prose-zinc dark:prose-invert">
         <ReactMarkdown
           components={{
             h1: ({ children }) => (
