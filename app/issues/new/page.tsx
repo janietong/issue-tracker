@@ -2,25 +2,46 @@
 
 import dynamic from 'next/dynamic';
 import "easymde/dist/easymde.min.css";
-import { Button, TextField, Callout } from '@radix-ui/themes';
+import { Button, TextField, Callout, Text } from '@radix-ui/themes';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { createIssueSchema } from '@/app/validationSchemas';
+import { z } from 'zod';
+import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 
 const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
   ssr: false,
 });
 
-interface IssueForm {
-  title: string,
-  description: string
-}
+type IssueForm = z.infer<typeof createIssueSchema>;
 
 const NewIssuePage = () => {
   const router = useRouter();
-  const {register, control, handleSubmit} = useForm<IssueForm>();
+  const { register, control, handleSubmit, formState: { errors } } = useForm<IssueForm>({
+    resolver: zodResolver(createIssueSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+    },
+  });
+
   const [error, setError] = useState(''); 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      setIsSubmitting(true);
+      await axios.post('/api/issues', data);
+      router.push('/issues');
+    } catch (error) {
+      setIsSubmitting(false);
+      setError('An unexpected error occurred!');
+    }
+    })
 
   return (
     <div className='max-w-xl'>
@@ -29,21 +50,26 @@ const NewIssuePage = () => {
           <Callout.Text>{error}</Callout.Text>
         </Callout.Root>
       )}
-      <form className='space-y-3' onSubmit={handleSubmit(async (data) => {
-        try {
-          await axios.post('/api/issues', data);
-          router.push('/issues');
-        } catch (error) {
-          setError('An unexpected error occurred!');
-        }
-        })}>
+      <form className='space-y-3' onSubmit={onSubmit}>
         <TextField.Root placeholder='Title' {...register('title')}/>
+        <ErrorMessage>{errors.title?.message}</ErrorMessage>
         <Controller
           name="description"
           control={control}
-          render={({field}) => <SimpleMDE placeholder='Description' {...field}/>}
+          defaultValue=""
+          render={({ field }) => (
+            <SimpleMDE
+              {...field}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              placeholder="Description"
+            />
+          )}
         />
-        <Button>Submit new issue</Button>
+
+        <ErrorMessage>{errors.description?.message}</ErrorMessage>
+        <Button disabled={isSubmitting}>Submit new issue {isSubmitting && <Spinner />}</Button>
       </form>
     </div>
   )
