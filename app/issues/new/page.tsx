@@ -56,15 +56,8 @@ const NewIssuePage = () => {
         <Controller
           name="description"
           control={control}
-          defaultValue=""
           render={({ field }) => (
-            <SimpleMDE
-              {...field}
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              placeholder="Description"
-            />
+            <SimpleMDE placeholder="Description" {...field}/>
           )}
         />
 

@@ -16,18 +16,18 @@ const IssueDetailPage = async ({params}: Props) => {
     if (!issue) 
         notFound()
 
-  return (
-    <div>
-       <Heading>{issue.title}</Heading>
-       <Flex gap={"3"} my={"2"}>
-            <IssueStatusBadge status={issue.status}/>
-            <Text>{issue.createdAt.toDateString()}</Text>
-       </Flex>
-       <Card className='prose mt-4'>
-            <ReactMarkdown>{issue.description}</ReactMarkdown>
-       </Card>
-    </div>
-  )
+    return (
+      <div>
+        <Heading>{issue.title}</Heading>
+        <Flex gap={"3"} my={"2"}>
+              <IssueStatusBadge status={issue.status}/>
+              <Text>{issue.createdAt.toDateString()}</Text>
+        </Flex>
+        <Card className='prose mt-4'>
+              <ReactMarkdown>{issue.description}</ReactMarkdown>
+        </Card>
+      </div>
+    )
 }
 
 export default IssueDetailPage
