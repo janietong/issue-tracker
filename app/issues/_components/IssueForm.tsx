@@ -1,22 +1,18 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import 'easymde/dist/easymde.min.css';
-import { Button, TextField, Callout } from '@radix-ui/themes';
-import { useForm, Controller } from 'react-hook-form';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { IssueSchema } from '@/app/validationSchemas';
-import { z } from 'zod';
 import ErrorMessage from '@/app/components/ErrorMessage';
 import Spinner from '@/app/components/Spinner';
+import { IssueSchema } from '@/app/validationSchemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Issue } from '@prisma/client';
-
-const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
-  ssr: false,
-});
+import { Button, Callout, TextField } from '@radix-ui/themes';
+import axios from 'axios';
+import 'easymde/dist/easymde.min.css';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import SimpleMDE from 'react-simplemde-editor';
+import { z } from 'zod';
 
 type IssueFormData = z.infer<typeof IssueSchema>;
 
@@ -48,11 +44,14 @@ export default function IssueForm({ issue }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      setIsSubmitting(true);
       if (issue) {
-        setIsSubmitting(true);
         await axios.patch(`/api/issues/${issue.id}`, data);
-        router.push('/issues');
+      } else {
+        await axios.post(`/api/issues`, data);
       }
+      router.push('/issues');
+      router.refresh();
     } catch {
       setIsSubmitting(false);
       setError('An unexpected error occurred!');
@@ -93,7 +92,7 @@ export default function IssueForm({ issue }: Props) {
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
 
         <Button type="submit" disabled={isSubmitting}>
-          {issue ? 'Save Changes' : 'Submit New Issue'}
+          {issue ? 'Save Changes' : 'Submit New Issue'}{' '}
           {isSubmitting && <Spinner />}
         </Button>
       </form>
