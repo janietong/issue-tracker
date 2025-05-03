@@ -3,29 +3,47 @@ import { Flex, Table } from '@radix-ui/themes';
 import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueStatusFilter from '../issues/IssueStatusFilter';
 import Link from '../components/Link';
-import { Status } from '@prisma/client';
+import { Issue, Status } from '@prisma/client';
 import IssueActions from './IssueActions';
+import NextLink from 'next/link';
+import { ArrowUpIcon } from "@radix-ui/react-icons";
 
 interface Props {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; orderBy?: keyof Issue }>;
 }
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default async function IssuesPage({ searchParams }: Props) {
-  const sp = await searchParams
+  const sp = await searchParams;
+  const { status: rawStatus, orderBy: rawOrderBy } = sp;
 
-  const raw = sp.status
-  const valid = Object.values<Status>(Status)
-  const statusFilter = raw && valid.includes(raw as Status)
-    ? (raw as Status)
-    : undefined
+  const isValidStatus = (value: string): value is Status =>
+    Object.values(Status).includes(value as Status);
+  
+  const statusFilter = rawStatus && isValidStatus(rawStatus)
+    ? rawStatus
+    : undefined;  
 
-  const issues = await prisma.issue.findMany(
-    statusFilter
-      ? { where: { status: statusFilter } }
-      : undefined
-  )
+  type IssueOrderBy = { [K in keyof Issue]?: 'asc' | 'desc' };
+  const orderByArg: IssueOrderBy | undefined = rawOrderBy
+    ? { [rawOrderBy]: 'asc' }
+    : undefined;
+
+  const issues = await prisma.issue.findMany({
+    ...(statusFilter && { where: { status: statusFilter } }),
+    ...(orderByArg && { orderBy: orderByArg }),
+  });
+
+  const columns: {
+    label: string;
+    value: keyof Issue;
+    className?: string;
+  }[] = [
+    { label: 'Issue',   value: 'title' },
+    { label: 'Status',  value: 'status',   className: 'hidden md:table-cell' },
+    { label: 'Created', value: 'createdAt', className: 'hidden md:table-cell' },
+  ];
 
   return (
     <div>
@@ -33,13 +51,27 @@ export default async function IssuesPage({ searchParams }: Props) {
       <Table.Root variant="surface">
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeaderCell>Issue</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className="hidden md:table-cell">
-              Status
-            </Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className="hidden md:table-cell">
-              Created
-            </Table.ColumnHeaderCell>
+            {columns.map((col) => (
+              <Table.ColumnHeaderCell
+                key={col.value}
+                className={col.className}
+              >
+                <NextLink
+                  href={{
+                    pathname: '/issues',
+                    query: {
+                      ...(statusFilter && { status: statusFilter }),
+                      orderBy: col.value,
+                    },
+                  }}
+                >
+                  {col.label}
+                </NextLink>
+                {rawOrderBy === col.value && (
+                  <ArrowUpIcon className="inline ml-1" />
+                )}
+              </Table.ColumnHeaderCell>
+            ))}
           </Table.Row>
         </Table.Header>
 
@@ -63,5 +95,5 @@ export default async function IssuesPage({ searchParams }: Props) {
         </Table.Body>
       </Table.Root>
     </div>
-  )
+  );
 }
