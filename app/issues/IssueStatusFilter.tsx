@@ -18,24 +18,20 @@ const statuses: { label: string; value: FilterValue }[] = [
 export default function IssueStatusFilter() {
   const router = useRouter();
   const params = useSearchParams();
-  // get the current status from the URL, default to ALL
   const current = (params.get('status') as FilterValue) ?? 'ALL';
 
   const onChange = async (value: FilterValue) => {
-    // build the new URL
     const href = value === 'ALL' ? '/issues' : `/issues?status=${value}`;
-    // navigate + then re‑fetch the server component
     await router.push(href);
     router.refresh();
   };
 
-  // show the human‑friendly label in the trigger
   const currentLabel =
     statuses.find((s) => s.value === current)?.label ?? 'Filter…';
 
   return (
     <Select.Root value={current} onValueChange={onChange}>
-      <Select.Trigger>{currentLabel}</Select.Trigger>
+      <Select.Trigger className="mb-4">{currentLabel}</Select.Trigger>
       <Select.Content>
         {statuses.map((s) => (
           <Select.Item key={s.value} value={s.value}>
