@@ -25,9 +25,13 @@ export default async function IssuesPage({ searchParams }: Props) {
     ? rawStatus
     : undefined;  
 
-  type IssueOrderBy = { [K in keyof Issue]?: 'asc' | 'desc' };
-  const orderByArg: IssueOrderBy | undefined = rawOrderBy
-    ? { [rawOrderBy]: 'asc' }
+  const sortableFields: (keyof Issue)[] = ['title', 'status', 'createdAt'];
+
+  const isValidOrderBy = (value: string): value is keyof Issue =>
+    sortableFields.includes(value as keyof Issue);
+  
+  const orderByArg = rawOrderBy && isValidOrderBy(rawOrderBy)
+    ? { [rawOrderBy]: 'asc' as const }
     : undefined;
 
   const issues = await prisma.issue.findMany({
