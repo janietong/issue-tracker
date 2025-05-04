@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { AiFillBug } from "react-icons/ai";
+import { FaceIcon } from "@radix-ui/react-icons"
 import classnames from "classnames";
 import { useSession } from "next-auth/react";
 import { Avatar, Box, Button, Container, DropdownMenu, Flex, Text } from "@radix-ui/themes";
@@ -16,7 +16,7 @@ const NavBar = () => {
           <Flex justify="between">
             <Flex align="center" gap="3">
               <Link href="/">
-                <AiFillBug />
+                <FaceIcon />
               </Link>
               <NavLinks />
            </Flex>
