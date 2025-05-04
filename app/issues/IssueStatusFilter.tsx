@@ -16,15 +16,24 @@ const statuses: { label: string; value: FilterValue }[] = [
 ];
 
 export default function IssueStatusFilter() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const current = (params.get('status') as FilterValue) ?? 'ALL';
+   const router = useRouter();
+   const searchParams = useSearchParams();
+   const current = (searchParams.get('status') as FilterValue) ?? 'ALL';
 
-  const onChange = async (value: FilterValue) => {
-    const href = value === 'ALL' ? '/issues' : `/issues?status=${value}`;
-    await router.push(href);
-    router.refresh();
-  };
+   const onChange = (value: FilterValue) => {
+      const params = new URLSearchParams();
+  
+      if (value !== 'ALL') params.set('status', value);
+  
+      const orderBy = searchParams.get('orderBy');
+      if (orderBy) params.set('orderBy', orderBy);
+  
+      const queryString = params.toString();
+      const href = '/issues' + (queryString ? '?' + queryString : '');
+  
+      router.push(href);
+      router.refresh();
+   };
 
   const currentLabel =
     statuses.find((s) => s.value === current)?.label ?? 'Filter…';
